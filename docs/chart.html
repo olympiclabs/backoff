@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+ <script src="https://www.gstatic.com/charts/loader.js"></script>
+ <body>
+  <script>
+    google.charts.load('current',{packages:['corechart', 'controls']});
+
+    google.charts.setOnLoadCallback(drawChart);
+
+    var curve = {
+      amplifier:    10,
+      coefficient:  20,
+      modifier:     15,
+      offset:        0,
+      divisor:       1,
+      iterations:   10,
+
+      gendata: function() {
+        var data = [['Iterations', 'Millis'], [0,0]];
+
+        for (x = 1; x <= this.iterations; x++) {
+          data.push([x, (this.amplifier * Math.log(this.coefficient * x - this.modifier) + this.offset) / this.divisor]);
+        }
+
+        return data;
+      }
+    };
+
+    function drawChart() {
+      // Set Data
+      const data = google.visualization.arrayToDataTable(curve.gendata());
+
+      // Set Options
+      const options = {
+        title: 'Delay per Iteration',
+        hAxis: {title: 'Iteration Number', format: 'decimal', minValue: 0, maxValue: 10},
+        vAxis: {title: 'Milliseconds', minValue: 0, viewWindow: {min: 0, max: 55}},
+        legend: 'none',
+        curveType: 'function',
+        pointShape: 'circle',
+        pointSize: 5,
+        pointsVisible: true,
+      };
+
+      // Draw
+      const chart = new google.visualization.LineChart(document.getElementById('myChart'));
+      chart.draw(data, options);
+
+      const iters = document.querySelector("#iterrange");
+      const output = document.querySelector(".iters-output");
+
+      iters.value = curve.iterations;
+      output.textContent = iters.value;
+
+      iters.addEventListener("input", () => {
+        output.textContent = iters.value;
+        curve.iterations = iters.value;
+
+        var data = curve.gendata();
+
+        options.hAxis.maxValue = iters.value;
+        options.vAxis.viewWindow.max = (Math.floor(data[data.length-1] / 5) + 1) * 5;
+
+        var table = google.visualization.arrayToDataTable(data);
+        chart.draw(table, options);
+      });
+    }
+  </script>
+
+  <div id="myChart" style="width:100%; max-width:900px; height:600px;"></div>
+  <form>
+   <span>
+   <label for=amplifier">Amplifier: </label>
+   <input type="number" name="amplifier" id="amplifier" min="1" max="1000" step="1" value="1"/>
+   </span>
+   <span>
+   <label for=iterrange">Iterations: </label>
+   <input type="range" name="iterrange" id="iterrange" min="2" max="50" step="1" value="5"/>
+   <output class="iters-output" for="iterrange">5</output>
+   </span>
+  </form>
+ </body>
+</html>

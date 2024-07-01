@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+ <head>
+ <style>
+  .container {
+    position: relative;
+    width: 900px;
+    height:600px;
+    margin: 20px;
+  }
+
+  .chart {
+  }
+ </style>
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ </head>
+
+ <body>
+
+  <div class="container">
+   <canvas id="myChart"></canvas>
+   <div id="xscroller" class="xscroller"></div>
+  </div>
+  <form>
+   <span>
+   <label for=amplifier">Amplifier: </label>
+   <input type="number" name="amplifier" id="amplifier" min="1" max="1000" step="1" value="1"/>
+   </span>
+   <span>
+   <label for=iterrange">Iterations: </label>
+   <input type="range" name="iterrange" id="iterrange" min="2" max="50" step="1" value="5"/>
+   <output class="iters-output" for="iterrange">5</output>
+   </span>
+  </form>
+
+  <script src="./samplechart.js"></script>
+ </body>
+</html>

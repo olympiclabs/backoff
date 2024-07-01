@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+ <head>
+ <style>
+  .container {
+    position: relative;
+  }
+
+  .chart {
+    width: 900px;
+    height:600px;
+    margin: 20px;
+  }
+
+  .chart + .xscroller {
+    position: absolute;
+    bottom: 6px;
+    left:   50px;
+    height: 20px;
+    background: rgba(200, 100, 50, 5);
+    opacity: 10%;
+  }
+
+  .xscroller {
+    z-index: 10;
+    width: 900px;
+  }
+
+ </style>
+ <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    google.charts.load('current',{packages:['corechart']});
+
+    google.charts.setOnLoadCallback(drawChart);
+
+    var curve = {
+      amplifier:    10,
+      coefficient:  20,
+      modifier:     15,
+      offset:        0,
+      divisor:       1,
+      iterations:   10,
+
+      gendata: function() {
+        var data = [['Iterations', 'Millis'], [0,0]];
+
+        for (x = 1; x <= this.iterations; x++) {
+          data.push([x, (this.amplifier * Math.log(this.coefficient * x - this.modifier) + this.offset) / this.divisor]);
+        }
+
+        DATA = data;
+
+        return data;
+      }
+    };
+
+    function drawChart() {
+      // Set Data
+      const data = google.visualization.arrayToDataTable(curve.gendata());
+      TABLE = data;
+
+      // Set Options
+      const options = {
+        title: 'Delay (ms) per Iteration',
+        hAxis: {format: 'decimal', viewWindow: {min: 0, max: 10}},
+        vAxis: {format: 'decimal', minValue: 0, viewWindow: {min: 0, max: 55}},
+        axisTitlesPosition: 'none',
+        legend: 'none',
+        chartArea: {left: 50, top: 20, width: '100%', height: 550},
+        curveType: 'function',
+        pointShape: 'circle',
+        pointSize: 5,
+        pointsVisible: true,
+      };
+
+      // Draw
+      const chart = new google.visualization.LineChart(document.getElementById('myChart'));
+      chart.draw(data, options);
+
+      const iters     = document.querySelector("#iterrange");
+      const output    = document.querySelector(".iters-output");
+      const xscroller = document.getElementById("xscroller");
+
+      iters.value = curve.iterations;
+      output.textContent = iters.value;
+
+      iters.addEventListener("input", () => {
+        output.textContent = iters.value;
+        curve.iterations = iters.value;
+
+        var data = curve.gendata();
+
+        // options.vAxis.viewWindow.max = (Math.floor(data[data.length-1] / 5) + 1) * 5;
+
+        var table = google.visualization.arrayToDataTable(data);
+        chart.draw(table, options);
+        DATA = data;
+        TABLE = table;
+      });
+
+      xscroller.addEventListener("wheel", (evt) => {
+        var max = options.hAxis.viewWindow.max;
+
+        if (evt.deltaY > 0) {
+          if (max < 10) {
+            max++
+          } else {
+            max = Math.floor(max * 1.15);
+          }
+        } else if (evt.deltaY < 0) {
+          if (max < 10) {
+            max--
+          } else {
+            max = Math.floor(max * 0.85);
+          }
+        }
+
+        if (max <= 2) {
+          max = 2;
+        }
+
+        options.hAxis.viewWindow.max = max;
+
+        chart.draw(data, options);
+      })
+    }
+  </script>
+ </head>
+
+ <body>
+  <script>var DATA = []; var TABLE;</script>
+  <div class="container">
+   <div id="myChart" class="chart"></div>
+   <div id="xscroller" class="xscroller"></div>
+  </div>
+  <form>
+   <span>
+   <label for=amplifier">Amplifier: </label>
+   <input type="number" name="amplifier" id="amplifier" min="1" max="1000" step="1" value="1"/>
+   </span>
+   <span>
+   <label for=iterrange">Iterations: </label>
+   <input type="range" name="iterrange" id="iterrange" min="2" max="50" step="1" value="5"/>
+   <output class="iters-output" for="iterrange">5</output>
+   </span>
+  </form>
+ </body>
+</html>
